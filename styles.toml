@@ -1,0 +1,113 @@
+[document]
+[document.style]
+name='style_document'
+fontName='Baskerville'
+fontSize=12
+leading=16
+leftIndent=0
+rightIndent=0
+firstLineIndent=10
+alignment=0 
+spaceBefore=0
+spaceAfter=0
+[document.settings]
+newPageBefore = false
+newPageAfter = false
+newParagraphOnEndline = false
+blockSpaceBefore = 0
+blockSpaceAfter = 0
+
+[subtitle]
+[subtitle.style]
+name='style_subtitle'
+fontName='Baskerville'
+fontSize=12
+leading=16
+leftIndent=0
+rightIndent=0
+firstLineIndent=0
+alignment=1 
+spaceBefore=0
+spaceAfter=0
+[subtitle.settings]
+newPageBefore = false
+newPageAfter = false
+newParagraphOnEndline = true
+blockSpaceBefore = 5
+blockSpaceAfter = 5
+
+[title]
+[title.style]
+name='title'
+fontName='Baskerville-Bold'
+fontSize=30
+leading=40
+leftIndent=0
+rightIndent=0
+firstLineIndent=0
+alignment=1
+spaceBefore=0
+spaceAfter=20
+[title.settings]
+newPageBefore = true
+newPageAfter = false
+newParagraphOnEndline = false
+blockSpaceBefore = 0
+blockSpaceAfter = 0
+
+[poetry]
+[poetry.style]
+name = 'style_poetry'
+fontName='Baskerville'
+fontSize=12
+leading = 16
+leftIndent = 60
+rightIndent = 0
+firstLineIndent = 0
+alignment = 0
+spaceBefore=0
+spaceAfter=0
+[poetry.settings]
+newPageBefore = false
+newPageAfter = false
+newParagraphOnEndline = true
+blockSpaceBefore = 10
+blockSpaceAfter = 10
+
+[maxim]
+[maxim.style]
+name = 'style_maxim'
+fontName='Baskerville'
+fontSize=12
+leading = 16
+leftIndent = 10
+rightIndent = 0
+firstLineIndent = 0
+alignment = 0
+spaceBefore=0
+spaceAfter=0
+[maxim.settings]
+newPageBefore = false
+newPageAfter = false
+newParagraphOnEndline = true
+blockSpaceBefore = 10
+blockSpaceAfter = 10
+
+[end_poetry]
+[end_poetry.style]
+name = 'style_end_poetry'
+fontName='Baskerville'
+fontSize=12
+leading = 30
+leftIndent = 0
+rightIndent = 5
+firstLineIndent = 0
+alignment = 1
+spaceBefore=5
+spaceAfter=0
+[end_poetry.settings]
+newPageBefore = false
+newPageAfter = false
+newParagraphOnEndline = true
+blockSpaceBefore = 0
+blockSpaceAfter = 0

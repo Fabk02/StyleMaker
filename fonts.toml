@@ -1,0 +1,17 @@
+[Arial]
+default.name = 'Arial'
+default.path = 'Arial.ttf'
+italic.name = 'Arial-Italic'
+italic.path = 'ariali.ttf'
+
+[Baskerville]
+default.name = 'Baskerville'
+default.path = 'C:\Users\fabio\AppData\Local\Microsoft\Windows\Fonts\LibreBaskerville-Regular.ttf'
+italic.name = 'Baskerville-Italic'
+italic.path = 'C:\Users\fabio\AppData\Local\Microsoft\Windows\Fonts\LibreBaskerville-Italic.ttf'
+bold.name = 'Baskerville-Bold'
+bold.path = 'C:\Users\fabio\AppData\Local\Microsoft\Windows\Fonts\LibreBaskerville-Bold.ttf'
+
+[ArialMT]
+default.name = 'ArialMT'
+default.path = 'C:\Users\fabio\AppData\Local\Microsoft\Windows\Fonts\LibreBaskerville-Bold.ttf'

@@ -1,0 +1,14 @@
+["poetry (1)".style]
+name = "style_poetry"
+fontName = "Arial"
+fontSize = "12"
+leading = "16"
+leftIndent = "60"
+textColor = "#000000"
+
+["poetry (1)".settings]
+newPageBefore = 0
+newPageAfter = 0
+newParagraphOnEndline = 1
+blockSpaceBefore = "10"
+blockSpaceAfter = "10"

@@ -1,0 +1,16 @@
+[end_poetry.style]
+name = "style_end_poetry"
+fontName = "Baskerville"
+fontSize = "12"
+leading = "30"
+rightIndent = "5"
+alignment = "1"
+spaceBefore = "5"
+textColor = "#000000"
+
+[end_poetry.settings]
+newPageBefore = 0
+newPageAfter = 0
+newParagraphOnEndline = 1
+blockSpaceBefore = "0"
+blockSpaceAfter = "0"
