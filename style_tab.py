@@ -16,10 +16,25 @@ def load_styles_settings(*argv):
         for style_name in styles_toml:
             updated_style_name = style_name
             if style_name in list(styles_dict.keys()):
-                updated_style_name = f"{style_name} ({list(styles_dict.keys()).count(style_name)})"
+                updated_style_name = f"{style_name}({list(styles_dict.keys()).count(style_name)})"
             styles_dict[updated_style_name] = styles_toml[style_name]["style"]
             settings_dict[updated_style_name] = styles_toml[style_name]["settings"]
     return styles_dict,settings_dict
+
+def refresh(new_stringvar, style_dict, settings_dict, style_config_dict, settings_config_dict):
+    for entry in style_config_dict:
+        init_widget(style_config_dict[entry], entry, style_dict[new_stringvar])
+
+    for entry in settings_config_dict:
+        init_widget(settings_config_dict[entry], entry, settings_dict[new_stringvar], default_settings)
+
+def refresh(event, new_stringvar, style_dict, settings_dict, style_config_dict, settings_config_dict):
+    for entry in style_config_dict:
+        init_widget(style_config_dict[entry], entry, style_dict[new_stringvar])
+
+    for entry in settings_config_dict:
+        init_widget(settings_config_dict[entry], entry, settings_dict[new_stringvar], default_settings)
+    
 
 def export(name, style_config_dict, settings_config_dict):
     style_dict = {}
@@ -73,12 +88,16 @@ def create_tab(notebook):
     #### STYLE MANAGER #######################################################################
     ##########################################################################################
 
-    style_selector = ttk.Combobox(frame)
+    selected_style_stringvar = tk.StringVar()
+    style_selector = ttk.Combobox(frame, textvariable=selected_style_stringvar)
     style_selector.state(["readonly"])
+    style_selector.bind("<<ComboboxSelected>>",lambda event: refresh(event,selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
     style_selector['values'] = list(styles_dict.keys())
+    selected_style_stringvar.set(list(styles_dict.keys())[0])
     style_selector.grid(row=0, column=1, sticky='w')
 
-    b = ttk.Button(frame,text="add",command=lambda: print("A"))
+    #b = ttk.Button(frame,text="add",command=lambda: print(selected_style_stringvar.get()))
+    b = ttk.Button(frame,text="add",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
     b.grid(row=1,column=1, sticky='nw')
 
     ##########################################################################################
@@ -100,7 +119,7 @@ def create_tab(notebook):
         canvas.event_generate("<MouseWheel>", delta=event.delta)
         return "break"
     
-    selected_style = 'poetry'
+    #selected_style = selected_style_stringvar.get()
     
     ######################### STYLE TAB #######################################################
 
@@ -115,33 +134,33 @@ def create_tab(notebook):
         
         init_entry = partial(mkEntry, 
                              frame=labels_frame,
-                             style=styles_dict[selected_style],
+                             style=styles_dict[selected_style_stringvar.get()],
                              row=idx,column=1,sticky='we')
         
         init_comb = partial(mkComb, 
                             frame=labels_frame, 
-                            style=styles_dict[selected_style], 
+                            style=styles_dict[selected_style_stringvar.get()], 
                             scroll_event=pass_event_to_canvas, 
                             row=idx,column=1,sticky='we')
 
         init_checkbox = partial(mkCheckbox, 
                                 frame = labels_frame, 
-                                style=styles_dict[selected_style], 
+                                style=styles_dict[selected_style_stringvar.get()], 
                                 row=idx,column=1,sticky='we')
 
         init_colorpicker = partial(mkColorpicker,
                                    frame = labels_frame,
-                                   style=styles_dict[selected_style],
+                                   style=styles_dict[selected_style_stringvar.get()],
                                    row=idx,column=1,sticky='we')
 
         init_multiinsert = partial(mkMultiinsert,
                                    frame = labels_frame,
-                                   style = styles_dict[selected_style],
+                                   style = styles_dict[selected_style_stringvar.get()],
                                    row = idx, column = 1, sticky='we')
 
         init_entryselctor = partial(mkEntryselctor,
                                      frame = labels_frame,
-                                     style = styles_dict[selected_style],
+                                     style = styles_dict[selected_style_stringvar.get()],
                                      row = idx, column = 1, sticky = 'we')
 
         if name in ['name','endDots']:
@@ -190,13 +209,13 @@ def create_tab(notebook):
 
         init_entry = partial(mkEntry, 
                              frame=settings_tab,
-                             style=settings_dict[selected_style],
+                             style=settings_dict[selected_style_stringvar.get()],
                              default = default_settings,
                              row=idx,column=1,sticky='we')
         
         init_checkbox = partial(mkCheckbox, 
                                 frame = settings_tab, 
-                                style=settings_dict[selected_style], 
+                                style=settings_dict[selected_style_stringvar.get()], 
                                 default = default_settings,
                                 row=idx,column=1,sticky='we')
 
@@ -214,7 +233,8 @@ def create_tab(notebook):
     #### NAME AND EXPORT BUTTON ##############################################################
     ##########################################################################################
 
-    button = ttk.Button(frame, text="Save", command=lambda : export(selected_style, info_dict, settings_info_dict))
+    button = ttk.Button(frame, text="Save", command=lambda : export(selected_style_stringvar.get(), info_dict, settings_info_dict))
     button.grid(row=0,column=0,sticky='w')
+
 
     return style_tab
