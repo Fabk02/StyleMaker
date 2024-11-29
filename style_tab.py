@@ -18,8 +18,14 @@ def load_styles(style_dict,*argv):
                 updated_style_name = f"{style_name}({list(style_dict.keys()).count(style_name)})"
             #style_dict is a dictionary which at each style name in the file uploaded associate the style and the settings dictionaries
             style_dict[updated_style_name] = {"style": styles_toml[style_name]["style"], 
-                                              "settings": styles_toml[style_name]["settings"]}
-        return style_dict
+                                              "settings": styles_toml[style_name]["settings"],
+                                              "file": style_file}
+            if updated_style_name == style_name:
+                style_dict[updated_style_name]["renamed"] = False
+            else:
+                style_dict[updated_style_name]["renamed"] = True
+
+    return style_dict
 
 def refresh(event, new_stringvar, style_dict, style_widget_dict):
     for name,widget in style_widget_dict["style"].items():
@@ -63,7 +69,7 @@ def create_tab(notebook):
     
     #styles_dict, settings_dict = load_styles_settings({},{},'styles.toml','styles/poetry.toml')
     style_dict = load_styles({},'styles.toml','styles/poetry.toml')
-
+    
     frame = ttk.Frame(notebook)
     frame.columnconfigure(0,weight=1)
     frame.columnconfigure(1,weight=1)
