@@ -43,6 +43,8 @@ class ColorPicker:
             self.colorbutton.config(state='disabled')
             if self.checkvar.get() == 0:
                 self.checkvar.set(1)
+        else:
+            self.colorbutton.config(background='#000000')
 
     def update_status(self):
         if self.checkvar.get() == 0:
@@ -56,6 +58,7 @@ class ColorPicker:
     
     def set(self,colorvar):
         self.stringvar.set(colorvar)
+        self.update_color("s")
 
     def get(self):
         if (re.match('^#[0-9a-fA-F]*$', self.stringvar.get()) is not None and len(self.stringvar.get()) == 7) or self.stringvar.get() == "None":

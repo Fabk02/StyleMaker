@@ -8,9 +8,7 @@ from functools import partial
 import toml
 import re
 
-def load_styles_settings(*argv):
-    styles_dict = {}
-    settings_dict = {}
+def load_styles_settings(styles_dict,settings_dict,*argv):
     for style_file in argv:
         styles_toml = toml.load(style_file)
         for style_name in styles_toml:
@@ -69,7 +67,7 @@ def create_tab(notebook):
     def check_if_int(newval):
         return re.match('^[0-9]*$', newval) is not None
     
-    styles_dict, settings_dict = load_styles_settings('styles.toml','styles/poetry.toml')
+    styles_dict, settings_dict = load_styles_settings({},{},'styles.toml','styles/poetry.toml')
 
     frame = ttk.Frame(notebook)
     frame.columnconfigure(0,weight=1)
@@ -89,16 +87,16 @@ def create_tab(notebook):
     ##########################################################################################
 
     selected_style_stringvar = tk.StringVar()
+    selected_style_stringvar.set(list(styles_dict.keys())[0])
     style_selector = ttk.Combobox(frame, textvariable=selected_style_stringvar)
     style_selector.state(["readonly"])
     style_selector.bind("<<ComboboxSelected>>",lambda event: refresh(event,selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
     style_selector['values'] = list(styles_dict.keys())
-    selected_style_stringvar.set(list(styles_dict.keys())[0])
     style_selector.grid(row=0, column=1, sticky='w')
 
     #b = ttk.Button(frame,text="add",command=lambda: print(selected_style_stringvar.get()))
-    b = ttk.Button(frame,text="add",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
-    b.grid(row=1,column=1, sticky='nw')
+    newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
+    newStylwButton.grid(row=1,column=1, sticky='nw')
 
     ##########################################################################################
     #### STYLE AND SETTINGS NOTEBOOK #########################################################
@@ -118,8 +116,6 @@ def create_tab(notebook):
     def pass_event_to_canvas(event):
         canvas.event_generate("<MouseWheel>", delta=event.delta)
         return "break"
-    
-    #selected_style = selected_style_stringvar.get()
     
     ######################### STYLE TAB #######################################################
 
