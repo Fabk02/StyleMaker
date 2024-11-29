@@ -8,32 +8,26 @@ from functools import partial
 import toml
 import re
 
-def load_styles_settings(styles_dict,settings_dict,*argv):
+def load_styles(style_dict,*argv):
     for style_file in argv:
         styles_toml = toml.load(style_file)
         for style_name in styles_toml:
+            #If two style names are equal put a (number) after the name
             updated_style_name = style_name
-            if style_name in list(styles_dict.keys()):
-                updated_style_name = f"{style_name}({list(styles_dict.keys()).count(style_name)})"
-            styles_dict[updated_style_name] = styles_toml[style_name]["style"]
-            settings_dict[updated_style_name] = styles_toml[style_name]["settings"]
-    return styles_dict,settings_dict
+            if style_name in list(style_dict.keys()):
+                updated_style_name = f"{style_name}({list(style_dict.keys()).count(style_name)})"
+            #style_dict is a dictionary which at each style name in the file uploaded associate the style and the settings dictionaries
+            style_dict[updated_style_name] = {"style": styles_toml[style_name]["style"], 
+                                              "settings": styles_toml[style_name]["settings"]}
+        return style_dict
 
-def refresh(new_stringvar, style_dict, settings_dict, style_config_dict, settings_config_dict):
-    for entry in style_config_dict:
-        init_widget(style_config_dict[entry], entry, style_dict[new_stringvar])
+def refresh(event, new_stringvar, style_dict, style_widget_dict):
+    for name,widget in style_widget_dict["style"].items():
+        init_widget(widget, name, style_dict[new_stringvar]["style"])
 
-    for entry in settings_config_dict:
-        init_widget(settings_config_dict[entry], entry, settings_dict[new_stringvar], default_settings)
-
-def refresh(event, new_stringvar, style_dict, settings_dict, style_config_dict, settings_config_dict):
-    for entry in style_config_dict:
-        init_widget(style_config_dict[entry], entry, style_dict[new_stringvar])
-
-    for entry in settings_config_dict:
-        init_widget(settings_config_dict[entry], entry, settings_dict[new_stringvar], default_settings)
+    for name,widget in style_widget_dict["settings"].items():
+        init_widget(widget, name, style_dict[new_stringvar]["settings"],default_settings)
     
-
 def export(name, style_config_dict, settings_config_dict):
     style_dict = {}
     default_style = ParagraphStyle(name='dummy')
@@ -67,9 +61,8 @@ def create_tab(notebook):
     def check_if_int(newval):
         return re.match('^[0-9]*$', newval) is not None
     
-    styles_dict, settings_dict = load_styles_settings({},{},'styles.toml','styles/poetry.toml')
-
-    print("CIAO!")
+    #styles_dict, settings_dict = load_styles_settings({},{},'styles.toml','styles/poetry.toml')
+    style_dict = load_styles({},'styles.toml','styles/poetry.toml')
 
     frame = ttk.Frame(notebook)
     frame.columnconfigure(0,weight=1)
@@ -89,16 +82,16 @@ def create_tab(notebook):
     ##########################################################################################
 
     selected_style_stringvar = tk.StringVar()
-    selected_style_stringvar.set(list(styles_dict.keys())[0])
+    selected_style_stringvar.set(list(style_dict.keys())[0])
     style_selector = ttk.Combobox(frame, textvariable=selected_style_stringvar)
     style_selector.state(["readonly"])
-    style_selector.bind("<<ComboboxSelected>>",lambda event: refresh(event,selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
-    style_selector['values'] = list(styles_dict.keys())
+    style_selector.bind("<<ComboboxSelected>>",lambda event: refresh(event,selected_style_stringvar.get(), style_dict, style_widget_dict))
+    style_selector['values'] = list(style_dict.keys())
     style_selector.grid(row=0, column=1, sticky='w')
 
-    #b = ttk.Button(frame,text="add",command=lambda: print(selected_style_stringvar.get()))
-    newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
-    newStylwButton.grid(row=1,column=1, sticky='nw')
+    newStyleButton = ttk.Button(frame,text="add",command=lambda: print(selected_style_stringvar.get()))
+    #newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
+    newStyleButton.grid(row=1,column=1, sticky='nw')
 
     ##########################################################################################
     #### STYLE AND SETTINGS NOTEBOOK #########################################################
@@ -121,109 +114,115 @@ def create_tab(notebook):
     
     ######################### STYLE TAB #######################################################
 
-    info_dict = {}
+    #style_widget_dict is a dictionary that holds the widget associated to each ParagraphStyle and settings properties
+    #the structure is independent from the selected style, in this loop the values are initialized to the starting style
+    style_widget_dict = {"style":{},"settings":{}}
     dummy_paragraph = ParagraphStyle(name="default")
     label_name_list = list(vars(dummy_paragraph).keys())
+    #Iterate over the properties of ParagraphStyle
     for name,idx in zip(label_name_list,range(len(label_name_list))):
+        
+        #Skip the parent property
         if name in ['parent']:
             continue
 
         ttk.Label(labels_frame, text=name).grid(row=idx,column=0,sticky='w')
         
+        #for each loop define some functions with aggregated parameters, enhance the readibilty of the code that
+        #initialize the widget
         init_entry = partial(mkEntry, 
                              frame=labels_frame,
-                             style=styles_dict[selected_style_stringvar.get()],
+                             style=style_dict[selected_style_stringvar.get()]['style'],
                              row=idx,column=1,sticky='we')
         
         init_comb = partial(mkComb, 
                             frame=labels_frame, 
-                            style=styles_dict[selected_style_stringvar.get()], 
+                            style=style_dict[selected_style_stringvar.get()]['style'],
                             scroll_event=pass_event_to_canvas, 
                             row=idx,column=1,sticky='we')
 
         init_checkbox = partial(mkCheckbox, 
                                 frame = labels_frame, 
-                                style=styles_dict[selected_style_stringvar.get()], 
+                                style=style_dict[selected_style_stringvar.get()]['style'],
                                 row=idx,column=1,sticky='we')
 
         init_colorpicker = partial(mkColorpicker,
                                    frame = labels_frame,
-                                   style=styles_dict[selected_style_stringvar.get()],
+                                   style=style_dict[selected_style_stringvar.get()]['style'],
                                    row=idx,column=1,sticky='we')
 
         init_multiinsert = partial(mkMultiinsert,
                                    frame = labels_frame,
-                                   style = styles_dict[selected_style_stringvar.get()],
+                                   style=style_dict[selected_style_stringvar.get()]['style'],
                                    row = idx, column = 1, sticky='we')
 
         init_entryselctor = partial(mkEntryselctor,
                                      frame = labels_frame,
-                                     style = styles_dict[selected_style_stringvar.get()],
+                                     style=style_dict[selected_style_stringvar.get()]['style'],
                                      row = idx, column = 1, sticky = 'we')
 
         if name in ['name','endDots']:
-            info_dict[name] = init_entry(property_name=name)
+            style_widget_dict["style"][name] = init_entry(property_name=name)
         
         #DA METTERE CONDIZIONI SULL'INPUT
         elif name in ['borderRadius','spaceShrinkage','hyphenationLang','uriWasteReduce','underlineGap','strikeGap']:
-            info_dict[name] = init_entry(property_name=name)
+            style_widget_dict["style"][name] = init_entry(property_name=name)
         
         elif name in ['underlineWidth','underlineOffset','strikeWidth','strikeOffset']:
-            info_dict[name] = init_entryselctor(property_name=name, val_list=('P','L','f','F',''))
+            style_widget_dict["style"][name] = init_entryselctor(property_name=name, val_list=('P','L','f','F',''))
 
         elif name in ['fontName', 'bulletFontName']:           
-            info_dict[name]=init_comb(property_name=name, val_list=make_font_list('fonts.toml'))
+            style_widget_dict["style"][name]=init_comb(property_name=name, val_list=make_font_list('fonts.toml'))
 
         elif name in ['alignment']:
-            info_dict[name]=init_comb(property_name=name, val_list=(0,1,2,4))
+            style_widget_dict["style"][name]=init_comb(property_name=name, val_list=(0,1,2,4))
         
         elif name in ['textTransform']:
-            info_dict[name]=init_comb(property_name=name, val_list=('None','lowercase','uppercase','capitalize'))
+            style_widget_dict["style"][name]=init_comb(property_name=name, val_list=('None','lowercase','uppercase','capitalize'))
         
         elif name in ['bulletAnchor']:
-            info_dict[name]=init_comb(property_name=name, val_list=('start','middle','end','numeric'))
+            style_widget_dict["style"][name]=init_comb(property_name=name, val_list=('start','middle','end','numeric'))
         
         elif name in ['wordWrap']:
-            info_dict[name]=init_comb(property_name=name, val_list=('None','CJK'))
+            style_widget_dict["style"][name]=init_comb(property_name=name, val_list=('None','CJK'))
 
         elif name in ['fontSize','leading', 'leftIndent','rightIndent', 'firstLineIndent', 'spaceBefore', 'spaceAfter', 'bulletFontSize', 'bulletIndent', 'borderWidth']:
-            info_dict[name] = init_entry(property_name=name, condition=check_if_int)
+            style_widget_dict["style"][name] = init_entry(property_name=name, condition=check_if_int)
         
         elif name in ['borderPadding']:
-            info_dict[name] = init_multiinsert(property_name=name, n_entries=4)
+            style_widget_dict["style"][name] = init_multiinsert(property_name=name, n_entries=4)
 
         elif name in ['splitLongWords','allowWidows','allowOrphans','justifyLastLine', 'justifyBreaks','linkUnderline','embeddedHyphenation']:
-            info_dict[name] = init_checkbox(property_name=name)
+            style_widget_dict["style"][name] = init_checkbox(property_name=name)
         
         elif name in ['textColor','backColor','borderColor','underlineColor','strikeColor']:
-            info_dict[name] = init_colorpicker(property_name=name)
+            style_widget_dict["style"][name] = init_colorpicker(property_name=name)
 
     ######################### SETTINGS TAB #######################################################
 
-    settings_info_dict = {}
     label_settings_list = list(default_settings.keys())
     for name,idx in zip(label_settings_list, range(len(label_settings_list))):
         ttk.Label(settings_tab, text=name).grid(row=idx,column=0,sticky='w')
 
         init_entry = partial(mkEntry, 
                              frame=settings_tab,
-                             style=settings_dict[selected_style_stringvar.get()],
+                             style=style_dict[selected_style_stringvar.get()]["settings"],
                              default = default_settings,
                              row=idx,column=1,sticky='we')
         
         init_checkbox = partial(mkCheckbox, 
-                                frame = settings_tab, 
-                                style=settings_dict[selected_style_stringvar.get()], 
+                                frame = settings_tab,
+                                style=style_dict[selected_style_stringvar.get()]["settings"], 
                                 default = default_settings,
                                 row=idx,column=1,sticky='we')
 
         if name in ['newPageBefore', 'newPageAfter', 'newParagraphOnEndline']:
-            settings_info_dict[name] = init_checkbox(property_name=name)
+            style_widget_dict['settings'][name] = init_checkbox(property_name=name)
 
         elif name in ['blockSpaceBefore', 'blockSpaceAfter']:
-            settings_info_dict[name] = init_entry(property_name=name, condition=check_if_int)
+            style_widget_dict['settings'][name] = init_entry(property_name=name, condition=check_if_int)
 
-    ttk.Button(settings_tab, text="button", command=lambda : print(settings_info_dict['newPageBefore'].get())) #BUTTON NEEDED SOMEHOW TO INITIALIZE CORRECTLY WIDGETS ON STYLE TAB
+    ttk.Button(settings_tab, text="button", command=lambda : print(style_widget_dict["style"]['newPageBefore'].get())) #BUTTON NEEDED SOMEHOW TO INITIALIZE CORRECTLY WIDGETS ON STYLE TAB
     labels_frame.bind("<Configure>", on_configure)
     canvas.bind_all("<MouseWheel>", on_mousewheel)
 
@@ -231,7 +230,7 @@ def create_tab(notebook):
     #### NAME AND EXPORT BUTTON ##############################################################
     ##########################################################################################
 
-    button = ttk.Button(frame, text="Save", command=lambda : export(selected_style_stringvar.get(), info_dict, settings_info_dict))
+    button = ttk.Button(frame, text="Save", command=lambda : export(selected_style_stringvar.get(), style_widget_dict['style'], style_widget_dict['settings']))
     button.grid(row=0,column=0,sticky='w')
 
 
