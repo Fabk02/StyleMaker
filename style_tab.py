@@ -69,6 +69,8 @@ def create_tab(notebook):
     
     styles_dict, settings_dict = load_styles_settings({},{},'styles.toml','styles/poetry.toml')
 
+    print("CIAO!")
+
     frame = ttk.Frame(notebook)
     frame.columnconfigure(0,weight=1)
     frame.columnconfigure(1,weight=1)
