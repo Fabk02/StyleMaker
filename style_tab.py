@@ -264,7 +264,13 @@ def create_tab(notebook):
     #### NAME AND EXPORT BUTTON ##############################################################
     ##########################################################################################
 
-    button = ttk.Button(frame, text="Save", command=lambda : export_local(selected_style_stringvar.get(), style_dict, style_widget_dict))
-    button.grid(row=0,column=0,sticky='w')
+    top_button_frame = ttk.Frame(frame)
+    top_button_frame.grid(row=0,column=0, sticky='w')
+
+    export_button = ttk.Button(top_button_frame, text="Save", command=lambda : export(selected_style_stringvar.get(), style_dict, style_widget_dict))
+    export_button.grid(row=0,column=0,sticky='w')
+    
+    clone_button = ttk.Button(top_button_frame, text="Clone", command=lambda : export_local(selected_style_stringvar.get(), style_dict, style_widget_dict))
+    clone_button.grid(row=0,column=1,sticky='w')
 
     return style_tab
