@@ -7,6 +7,7 @@ from default_settings import *
 from functools import partial
 import toml
 import re
+import os
 
 def load_styles(style_dict,*argv):
     for style_file in argv:
@@ -49,16 +50,33 @@ def mk_export_dicts(style_widget_dict):
     
 def export(stylename, style_dict, style_widget_dict):
     filename = style_dict[stylename]["file"]
-    try:
-        styles_toml = toml.load(filename)
-    except FileNotFoundError:
-        styles_toml = {}
-    
+    styles_toml = toml.load(filename)
+    #if the style was renamed the stylename does not coincide anymore with the one defined in the
+    #toml file, for this is needed to remove the number inserted in the renaming.
+    if style_dict[stylename]["renamed"]:
+        stylename = re.sub(r"\(\d+\)", r"", stylename)
     export_style_dict, export_settings_dict = mk_export_dicts(style_widget_dict)
     styles_toml[stylename] = {"style": export_style_dict, "settings": export_settings_dict}
 
     with open(filename, "w") as toml_file:
         toml.dump(styles_toml, toml_file)
+
+def export_local(stylename, style_dict, style_widget_dict, directory='styles'):
+    if style_dict[stylename]["renamed"]:
+        stylename = re.sub(r"\(\d+\)", r"", stylename)
+
+    export_style_dict, export_settings_dict = mk_export_dicts(style_widget_dict)
+    export_dict = {stylename: {"style": export_style_dict, "settings": export_settings_dict}}
+
+    if f"{stylename}.toml" not in os.listdir(directory):
+        toml_filename = f"{stylename}.toml"
+    else:
+        pattern = rf"{stylename}\(\d+\)\.toml"  
+        count = sum(1 for file in os.listdir(directory) if re.match(pattern, file))
+        toml_filename = f"{directory}/{stylename}({count+1}).toml"
+    
+    with open(toml_filename, "w") as toml_file:
+        toml.dump(export_dict,toml_file)
 
 def make_font_list(font_file):
     font_toml=toml.load(font_file)
@@ -78,7 +96,7 @@ def create_tab(notebook):
     def check_if_int(newval):
         return re.match('^[0-9]*$', newval) is not None
     
-    style_dict = load_styles({},'styles.toml','styles/poetry.toml')
+    style_dict = load_styles({},'styles/poetry.toml','styles.toml')
     
     frame = ttk.Frame(notebook)
     frame.columnconfigure(0,weight=1)
@@ -246,7 +264,7 @@ def create_tab(notebook):
     #### NAME AND EXPORT BUTTON ##############################################################
     ##########################################################################################
 
-    button = ttk.Button(frame, text="Save", command=lambda : export(selected_style_stringvar.get(), style_dict, style_widget_dict))
+    button = ttk.Button(frame, text="Save", command=lambda : export_local(selected_style_stringvar.get(), style_dict, style_widget_dict))
     button.grid(row=0,column=0,sticky='w')
 
     return style_tab

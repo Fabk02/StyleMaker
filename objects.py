@@ -25,6 +25,7 @@ class ColorPicker:
             self.checkvar.set(0)
         self.checkbox = ttk.Checkbutton(self.frame, variable=self.checkvar, command=self.update_status)
         self.checkbox.grid(row=0,column=2,sticky='we')
+        self.update_color("s")
         
     def grid(self, **kwargs):
         self.frame.grid(kwargs)
