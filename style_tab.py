@@ -16,16 +16,15 @@ def load_styles(style_dict,*argv):
             #If two style names are equal put a (number) after the name
             updated_style_name = style_name
             if style_name in list(style_dict.keys()):
-                updated_style_name = f"{style_name}({list(style_dict.keys()).count(style_name)})"
+                pattern = rf"{style_name}\(\d+\)"
+                count = sum(1 for name in style_dict if re.match(pattern, name))
+                updated_style_name = f"{style_name}({count+1})"
             #style_dict is a dictionary which at each style name in the file uploaded associate the style and the settings dictionaries
             style_dict[updated_style_name] = {"style": styles_toml[style_name]["style"], 
                                               "settings": styles_toml[style_name]["settings"],
-                                              "file": style_file}
-            if updated_style_name == style_name:
-                style_dict[updated_style_name]["renamed"] = False
-            else:
-                style_dict[updated_style_name]["renamed"] = True
-
+                                              "file": style_file,
+                                              "og_name": style_name}
+            
     return style_dict
 
 def refresh(event, new_stringvar, style_dict, style_widget_dict):
@@ -50,30 +49,25 @@ def mk_export_dicts(style_widget_dict):
     
 def export(stylename, style_dict, style_widget_dict):
     filename = style_dict[stylename]["file"]
+    og_stylename = style_dict[stylename]["og_name"]
     styles_toml = toml.load(filename)
-    #if the style was renamed the stylename does not coincide anymore with the one defined in the
-    #toml file, for this is needed to remove the number inserted in the renaming.
-    if style_dict[stylename]["renamed"]:
-        stylename = re.sub(r"\(\d+\)", r"", stylename)
     export_style_dict, export_settings_dict = mk_export_dicts(style_widget_dict)
-    styles_toml[stylename] = {"style": export_style_dict, "settings": export_settings_dict}
+    styles_toml[og_stylename] = {"style": export_style_dict, "settings": export_settings_dict}
 
     with open(filename, "w") as toml_file:
         toml.dump(styles_toml, toml_file)
 
 def export_local(stylename, style_dict, style_widget_dict, directory='styles'):
-    if style_dict[stylename]["renamed"]:
-        stylename = re.sub(r"\(\d+\)", r"", stylename)
-
+    og_stylename = style_dict[stylename]["og_name"]
     export_style_dict, export_settings_dict = mk_export_dicts(style_widget_dict)
-    export_dict = {stylename: {"style": export_style_dict, "settings": export_settings_dict}}
+    export_dict = {og_stylename: {"style": export_style_dict, "settings": export_settings_dict}}
 
-    if f"{stylename}.toml" not in os.listdir(directory):
-        toml_filename = f"{stylename}.toml"
+    if f"{og_stylename}.toml" not in os.listdir(directory):
+        toml_filename = f"{directory}/{og_stylename}.toml"
     else:
-        pattern = rf"{stylename}\(\d+\)\.toml"  
+        pattern = rf"{og_stylename}\(\d+\)\.toml"  
         count = sum(1 for file in os.listdir(directory) if re.match(pattern, file))
-        toml_filename = f"{directory}/{stylename}({count+1}).toml"
+        toml_filename = f"{directory}/{og_stylename}({count+1}).toml"
     
     with open(toml_filename, "w") as toml_file:
         toml.dump(export_dict,toml_file)
