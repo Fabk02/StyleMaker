@@ -4,6 +4,7 @@ from reportlab.lib.styles import ParagraphStyle
 from objects import *
 from style_utils import *
 from default_settings import *
+from new_name_tab import new_name_popup
 from functools import partial
 import toml
 import re
@@ -57,7 +58,7 @@ def export(stylename, style_dict, style_widget_dict):
     with open(filename, "w") as toml_file:
         toml.dump(styles_toml, toml_file)
 
-def export_local(stylename, style_dict, style_widget_dict, directory='styles'):
+def export_local(stylename, style_dict, style_widget_dict, combobox, directory='styles'):
     og_stylename = style_dict[stylename]["og_name"]
     export_style_dict, export_settings_dict = mk_export_dicts(style_widget_dict)
     export_dict = {og_stylename: {"style": export_style_dict, "settings": export_settings_dict}}
@@ -72,6 +73,9 @@ def export_local(stylename, style_dict, style_widget_dict, directory='styles'):
     with open(toml_filename, "w") as toml_file:
         toml.dump(export_dict,toml_file)
 
+    load_styles(style_dict, toml_filename)
+    combobox['values'] = list(style_dict.keys())
+
 def make_font_list(font_file):
     font_toml=toml.load(font_file)
     font_list = []
@@ -85,6 +89,24 @@ def update_style_dict(stylename, style_dict, style_widget_dict):
         style_dict[stylename]['style'][name] = widget.get()
     for name,widget in style_widget_dict['settings'].items():
         style_dict[stylename]['settings'][name] = widget.get()
+
+def handle_new_name(root, combobox, style_dict, directory='styles'):
+    new_name = new_name_popup(root)
+    if f"{new_name}.toml" not in os.listdir(directory):
+        toml_filename = f"{directory}/{new_name}.toml"
+    else:
+        pattern = rf"{new_name}\(\d+\)\.toml"  
+        count = sum(1 for file in os.listdir(directory) if re.match(pattern, file))
+        toml_filename = f"{directory}/{new_name}({count+1}).toml"
+
+    export_dict = {new_name:{"style": {"name": f"{new_name}_style"}, "settings": default_settings}}
+    with open(toml_filename, "w") as toml_file:
+        toml.dump(export_dict,toml_file)
+    
+    load_styles(style_dict, toml_filename)
+    combobox['values'] = list(style_dict.keys())
+    combobox.set(list(style_dict.keys())[-1])
+    combobox.event_generate("<<ComboboxSelected>>")
 
 def create_tab(notebook):
 
@@ -123,7 +145,7 @@ def create_tab(notebook):
     style_selector['values'] = list(style_dict.keys())
     style_selector.grid(row=0, column=1, sticky='w')
 
-    newStyleButton = ttk.Button(frame,text="add",command=lambda: update_style_dict(selected_style_stringvar.get(), style_dict,style_widget_dict))
+    newStyleButton = ttk.Button(frame,text="add",command=lambda: handle_new_name(notebook, style_selector, style_dict))
     #newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
     newStyleButton.grid(row=1,column=1, sticky='nw')
 
@@ -270,7 +292,7 @@ def create_tab(notebook):
     export_button = ttk.Button(top_button_frame, text="Save", command=lambda : (export(selected_style_stringvar.get(), style_dict, style_widget_dict), update_style_dict(selected_style_stringvar.get(), style_dict, style_widget_dict)))
     export_button.grid(row=0,column=0,sticky='w')
     
-    clone_button = ttk.Button(top_button_frame, text="Clone", command=lambda : export_local(selected_style_stringvar.get(), style_dict, style_widget_dict))
+    clone_button = ttk.Button(top_button_frame, text="Clone", command=lambda : export_local(selected_style_stringvar.get(), style_dict, style_widget_dict, style_selector))
     clone_button.grid(row=0,column=1,sticky='w')
 
     return style_tab
