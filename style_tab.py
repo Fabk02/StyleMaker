@@ -86,6 +86,12 @@ def make_font_list(font_file):
         font_list.append(font_toml[font]['default']['name'])
     return font_list
 
+def update_style_dict(stylename, style_dict, style_widget_dict):
+    for name,widget in style_widget_dict['style'].items():
+        style_dict[stylename]['style'][name] = widget.get()
+    for name,widget in style_widget_dict['settings'].items():
+        style_dict[stylename]['settings'][name] = widget.get()
+
 def create_tab(notebook):
 
     def on_configure(event):
@@ -96,7 +102,7 @@ def create_tab(notebook):
     def check_if_int(newval):
         return re.match('^[0-9]*$', newval) is not None
     
-    style_dict = load_styles({},'styles/poetry.toml','styles.toml')
+    style_dict = load_styles({},'styles.toml',*[os.path.join("styles", entry) for entry in os.listdir("styles")])
     
     frame = ttk.Frame(notebook)
     frame.columnconfigure(0,weight=1)
@@ -123,7 +129,7 @@ def create_tab(notebook):
     style_selector['values'] = list(style_dict.keys())
     style_selector.grid(row=0, column=1, sticky='w')
 
-    newStyleButton = ttk.Button(frame,text="add",command=lambda: print(selected_style_stringvar.get()))
+    newStyleButton = ttk.Button(frame,text="add",command=lambda: update_style_dict(selected_style_stringvar.get(), style_dict,style_widget_dict))
     #newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
     newStyleButton.grid(row=1,column=1, sticky='nw')
 
@@ -267,7 +273,7 @@ def create_tab(notebook):
     top_button_frame = ttk.Frame(frame)
     top_button_frame.grid(row=0,column=0, sticky='w')
 
-    export_button = ttk.Button(top_button_frame, text="Save", command=lambda : export(selected_style_stringvar.get(), style_dict, style_widget_dict))
+    export_button = ttk.Button(top_button_frame, text="Save", command=lambda : (export(selected_style_stringvar.get(), style_dict, style_widget_dict), update_style_dict(selected_style_stringvar.get(), style_dict, style_widget_dict)))
     export_button.grid(row=0,column=0,sticky='w')
     
     clone_button = ttk.Button(top_button_frame, text="Clone", command=lambda : export_local(selected_style_stringvar.get(), style_dict, style_widget_dict))
