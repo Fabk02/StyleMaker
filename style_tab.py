@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 from reportlab.lib.styles import ParagraphStyle 
 from objects import *
 from style_utils import *
@@ -142,8 +143,12 @@ def handle_rename(root, stylename, combobox, style_dict, directory = 'styles'):
     combobox.set(dict_new_name)
     combobox.event_generate("<<ComboboxSelected>>")
 
-        
-
+def load_new_style(style_dict,combobox):
+    file_path = filedialog.askopenfilename(title="Select style file", filetypes=[("TOML files","*.toml")])
+    if file_path:
+        load_styles(style_dict, file_path)
+        combobox['values'] = list(style_dict.keys())
+   
 def create_tab(notebook):
 
     def on_configure(event):
@@ -175,17 +180,23 @@ def create_tab(notebook):
 
     selected_style_stringvar = tk.StringVar()
     selected_style_stringvar.set(list(style_dict.keys())[0])
-    style_selector = ttk.Combobox(frame, textvariable=selected_style_stringvar)
+
+    selection_widgets = ttk.Frame(frame)
+    selection_widgets.grid(row=0,column=1,rowspan=2,sticky="nw")
+
+    style_selector = ttk.Combobox(selection_widgets, textvariable=selected_style_stringvar)
     style_selector.state(["readonly"])
     style_selector.bind("<<ComboboxSelected>>",lambda event: refresh(event,selected_style_stringvar.get(), style_dict, style_widget_dict))
     style_selector['values'] = list(style_dict.keys())
-    style_selector.grid(row=0, column=1, sticky='w')
+    style_selector.grid(row=0, column=0, columnspan=2,sticky='we')
 
-    newStyleButton = ttk.Button(frame,text="add",command=lambda: handle_new_name(notebook, style_selector, style_dict))
-    #newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
-    newStyleButton.grid(row=1,column=1, sticky='nw')
-    renameButton = ttk.Button(frame, text="Rename", command=lambda: handle_rename(notebook, selected_style_stringvar.get(), style_selector,style_dict))
-    renameButton.grid(row=1, column=2, sticky="nw")
+    newStyleButton = ttk.Button(selection_widgets,text="New",command=lambda: handle_new_name(notebook, style_selector, style_dict))
+    #newStylwButton = ttk.Button(selection_widgets,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
+    newStyleButton.grid(row=1,column=0, sticky='nw')
+    renameButton = ttk.Button(selection_widgets, text="Rename", command=lambda: handle_rename(notebook, selected_style_stringvar.get(), style_selector,style_dict))
+    renameButton.grid(row=1, column=1, sticky="nw")
+    loadButton = ttk.Button(selection_widgets, text="Load",command=lambda: load_new_style(style_dict, style_selector))
+    loadButton.grid(row=2,column=0,sticky="w")
     ##########################################################################################
     #### STYLE AND SETTINGS NOTEBOOK #########################################################
     ##########################################################################################
