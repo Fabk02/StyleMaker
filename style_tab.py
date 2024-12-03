@@ -108,6 +108,42 @@ def handle_new_name(root, combobox, style_dict, directory='styles'):
     combobox.set(list(style_dict.keys())[-1])
     combobox.event_generate("<<ComboboxSelected>>")
 
+def change_name_recursively(name, dict):
+    if name in list(dict.keys()):
+        name = f"{name}-copy"
+        return change_name_recursively(name, dict)
+    else:
+        return name
+
+def handle_rename(root, stylename, combobox, style_dict, directory = 'styles'):
+    new_name = new_name_popup(root)
+    if stylename == new_name:
+        return
+
+    with open(style_dict[stylename]["file"],"r") as file:
+        data = toml.load(file)
+    
+    file_new_name = change_name_recursively(new_name,data)
+    data[file_new_name] = data.pop(style_dict[stylename]["og_name"])
+
+    with open(style_dict[stylename]["file"],"w") as file:
+        toml.dump(data, file)
+
+    style_dict[stylename]["og_name"] = file_new_name
+    
+    dict_new_name = new_name
+    if dict_new_name in list(style_dict.keys()):
+        pattern = rf"{new_name}\(\d+\)"
+        count = sum(1 for name in style_dict if re.match(pattern, name))
+        dict_new_name = f"{new_name}({count+1})"
+
+    style_dict[dict_new_name] = style_dict.pop(stylename)
+    combobox['values'] = list(style_dict.keys())
+    combobox.set(dict_new_name)
+    combobox.event_generate("<<ComboboxSelected>>")
+
+        
+
 def create_tab(notebook):
 
     def on_configure(event):
@@ -148,7 +184,8 @@ def create_tab(notebook):
     newStyleButton = ttk.Button(frame,text="add",command=lambda: handle_new_name(notebook, style_selector, style_dict))
     #newStylwButton = ttk.Button(frame,text="New",command=lambda: refresh(selected_style_stringvar.get(), styles_dict, settings_dict, info_dict, settings_info_dict))
     newStyleButton.grid(row=1,column=1, sticky='nw')
-
+    renameButton = ttk.Button(frame, text="Rename", command=lambda: handle_rename(notebook, selected_style_stringvar.get(), style_selector,style_dict))
+    renameButton.grid(row=1, column=2, sticky="nw")
     ##########################################################################################
     #### STYLE AND SETTINGS NOTEBOOK #########################################################
     ##########################################################################################
