@@ -197,6 +197,7 @@ def create_tab(notebook):
     renameButton.grid(row=1, column=1, sticky="nw")
     loadButton = ttk.Button(selection_widgets, text="Load",command=lambda: load_new_style(style_dict, style_selector))
     loadButton.grid(row=2,column=0,sticky="w")
+    
     ##########################################################################################
     #### STYLE AND SETTINGS NOTEBOOK #########################################################
     ##########################################################################################
