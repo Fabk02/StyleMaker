@@ -151,6 +151,36 @@ class EntryWithSelector:
             return self.stringvar.get()
         else:
             return (self.stringvar.get() + '*' + self.comb.get())
+        
+class RegexEntry:
+    def __init__(self,parent, re_match, re_sub, check):
+        self.frame = ttk.Frame(parent)
+        self.match_stringvar = tk.StringVar()
+        self.match_stringvar.set(re_match)
+        self.sub_stringvar = tk.StringVar()
+        self.sub_stringvar.set(re_sub)
+        self.enabled_stringvar = tk.StringVar()
+        self.enabled_stringvar.set(check)
+
+        self.enabledButton = ttk.Checkbutton(self.frame, variable=self.enabled_stringvar)
+        self.enabledButton.grid(row=0, column=0)
+        ttk.Label(self.frame,text="Match").grid(row=0,column=1,sticky='we')
+        self.match_entry = ttk.Entry(self.frame, textvariable=self.match_stringvar)
+        self.match_entry.grid(row=0, column=2,sticky='we')
+        ttk.Label(self.frame, text="Substitution").grid(row=0,column=3,sticky='we')
+        self.sub_entry = ttk.Entry(self.frame, textvariable=self.sub_stringvar)
+        self.sub_entry.grid(row=0, column=4,sticky='we')
+
+        ttk.Button(self.frame, text="", command=lambda:print(self.match_stringvar.get()))
+
+    def get(self):
+        return_dict = {"find": self.match_stringvar.get(),
+                       "replace": self.sub_stringvar.get(),
+                       "enabled": self.enabled_stringvar.get()}
+        return return_dict
+    
+    def grid(self, **kwargs):
+        self.frame.grid(**kwargs)
 
 
 """ window = tk.Tk()
